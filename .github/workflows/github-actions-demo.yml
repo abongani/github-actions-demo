@@ -1,12 +1,51 @@
-# name: Run commands on different operating systems
+# # name: Run commands on different operating systems
+# # on:
+# #   push:
+# #     branches: [ dev ]
+# #   pull_request:
+# #     branches: [ dev ]
+
+# # jobs:
+# #   Run-npm-on-Ubuntu:
+# #     name: Run npm on Ubuntu
+# #     runs-on: ubuntu-latest
+# #     steps:
+# #       - uses: actions/checkout@v3
+# #       - uses: actions/setup-node@v3
+# #         with:
+# #           node-version: '14'
+# #       - run: npm help
+
+# #   Run-PSScriptAnalyzer-on-Windows:
+# #     name: Run PSScriptAnalyzer on Windows
+# #     runs-on: windows-latest
+# #     steps:
+# #       - uses: actions/checkout@v3
+# #       - name: Install PSScriptAnalyzer module
+# #         shell: pwsh
+# #         run: |
+# #           Set-PSRepository PSGallery -InstallationPolicy Trusted
+# #           Install-Module PSScriptAnalyzer -ErrorAction Stop
+# #       - name: Get list of rules
+# #         shell: pwsh
+# #         run: |
+# #           Get-ScriptAnalyzerRule
+
+# name: build and test
+
 # on:
 #   push:
-#     branches: [ dev ]
 #   pull_request:
 #     branches: [ dev ]
+#     paths:
+#     - '**.cs'
+#     # - '**.csproj'
+
+# env:
+#   DOTNET_VERSION: '5.0.301' # The .NET SDK version to use
 
 # jobs:
-#   Run-npm-on-Ubuntu:
+#    Run-npm-on-Ubuntu:
 #     name: Run npm on Ubuntu
 #     runs-on: ubuntu-latest
 #     steps:
@@ -16,7 +55,7 @@
 #           node-version: '14'
 #       - run: npm help
 
-#   Run-PSScriptAnalyzer-on-Windows:
+#    Run-PSScriptAnalyzer-on-Windows:
 #     name: Run PSScriptAnalyzer on Windows
 #     runs-on: windows-latest
 #     steps:
@@ -31,65 +70,51 @@
 #         run: |
 #           Get-ScriptAnalyzerRule
 
-name: build and test
+#    build-and-test:
+#     name: build-and-test-${{matrix.os}}
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       matrix:
+#         os: [ubuntu-latest, windows-latest, macOS-latest]
 
-on:
-  push:
-  pull_request:
-    branches: [ dev ]
-    paths:
-    - '**.cs'
-    # - '**.csproj'
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Setup .NET Core
+#       uses: actions/setup-dotnet@v1
+#       with:
+#         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-env:
-  DOTNET_VERSION: '5.0.301' # The .NET SDK version to use
+#     - name: Install dependencies
+#       run: dotnet restore
+      
+#     - name: Build
+#       run: dotnet build --configuration Release --no-restore
+    
+#     - name: Test
+#       run: dotnet test --no-restore --verbosity normal
+
+
+name: dotnet package
+
+on: [push]
 
 jobs:
-   Run-npm-on-Ubuntu:
-    name: Run npm on Ubuntu
+  build:
+
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - run: npm help
-
-   Run-PSScriptAnalyzer-on-Windows:
-    name: Run PSScriptAnalyzer on Windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install PSScriptAnalyzer module
-        shell: pwsh
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module PSScriptAnalyzer -ErrorAction Stop
-      - name: Get list of rules
-        shell: pwsh
-        run: |
-          Get-ScriptAnalyzerRule
-
-   build-and-test:
-
-    name: build-and-test-${{matrix.os}}
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        dotnet-version: ['3.0', '3.1.x', '5.0.x' ]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Install dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
