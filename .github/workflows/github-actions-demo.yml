@@ -6,7 +6,7 @@ on:
     branches: [ dev ]
     paths:
     - '**.cs'
-    - '**.csproj'
+    # - '**.csproj'
 
 env:
   DOTNET_VERSION: '5.0.301' # The .NET SDK version to use
