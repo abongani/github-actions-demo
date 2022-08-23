@@ -3,7 +3,7 @@ name: build
 on:
   push:
   pull_request:
-    branches: [ main ]
+    branches: [ dev ]
     paths:
     - '**.cs'
     - '**.csproj'
@@ -32,4 +32,3 @@ jobs:
       
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
